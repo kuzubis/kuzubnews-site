@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Підключити TikTok — KUZUB NEWS</title>
+<meta name="description" content="Підключення акаунта TikTok до застосунку KUZUB NEWS Mirror.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .tt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0;
+    padding: 14px 22px;
+    border: none;
+    border-radius: 10px;
+    background: #fe2c55;
+    color: #fff;
+    font: 600 17px/1 inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .tt-btn:hover { background: #e02449; color: #fff; }
+  .env {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid var(--line);
+    color: var(--dim);
+    font-size: 14px;
+  }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li {
+    counter-increment: s;
+    position: relative;
+    padding-left: 38px;
+    margin: 10px 0;
+  }
+  .steps li::before {
+    content: counter(s);
+    position: absolute;
+    left: 0;
+    top: 1px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">KN</div>
+  <h1>Підключити TikTok</h1>
+  <p class="tagline">Connect TikTok account</p>
+  <div class="stripe"><span></span><span></span></div>
+</header>
+
+<main>
+  <section>
+    <h2>Крок 1 — дозволити доступ<span class="env" id="env">sandbox</span></h2>
+    <p>Натисни кнопку нижче. TikTok спитає, чи дозволяєш застосунку
+      <strong>KUZUB NEWS Mirror</strong> працювати з твоїм акаунтом. Після згоди повернешся
+      сюди з одноразовим кодом.</p>
+    <p><a class="tt-btn" id="login" href="#">Увійти через TikTok</a></p>
+    <p class="updated">Застосунок запитує два дозволи:
+      <strong>user.info.basic</strong> — прочитати базовий профіль;
+      <strong>video.publish</strong> — публікувати відео на твій акаунт.</p>
+  </section>
+
+  <section>
+    <h2>Що буде далі</h2>
+    <ol class="steps">
+      <li>TikTok покаже екран згоди — натискаєш «Authorize».</li>
+      <li>Повертаєшся на сторінку з кодом — копіюєш його.</li>
+      <li>Надсилаєш код боту в Telegram командою <strong>/tiktok</strong>.</li>
+      <li>Бот обмінює код на ключ доступу й далі оновлює його сам.</li>
+    </ol>
+    <p class="updated">Повторювати це не доведеться — лише якщо ти відкличеш дозвіл у TikTok.</p>
+  </section>
+
+  <section>
+    <h2>Як це працює</h2>
+    <p>Бот <strong>KUZUB NEWS</strong> веде новинний канал у Telegram. Кліпи, які я переглянув
+      і схвалив вручну, він дзеркалить на мій акаунт TikTok: вертикальне відео із субтитрами,
+      підпис і джерело. Нічого не публікується без мого схвалення.</p>
+    <p><a href="index.html">← На головну</a> ·
+      <a href="terms.html">Умови</a> ·
+      <a href="privacy.html">Приватність</a></p>
+  </section>
+</main>
+
+<footer>
+  KUZUB NEWS · <a href="https://t.me/kuzubnews">t.me/kuzubnews</a>
+</footer>
+
+<script>
+(function () {
+  // Ключі застосунку. Client key не є таємницею — він завжди видно в адресі входу.
+  var KEYS = {
+    sandbox: 'sbawnb3szxqxgzpmrp',
+    production: ''            // заповнимо після схвалення застосунку
+  };
+  var REDIRECT = 'https://kuzubis.github.io/kuzubnews-site/callback.html';
+  var SCOPES = 'user.info.basic,video.publish';
+
+  // ?env=production перемикає на бойовий ключ, коли він з'явиться
+  var env = new URLSearchParams(window.location.search).get('env') === 'production'
+    ? 'production' : 'sandbox';
+  document.getElementById('env').textContent = env;
+
+  var key = KEYS[env];
+  var btn = document.getElementById('login');
+
+  if (!key) {
+    btn.removeAttribute('href');
+    btn.style.opacity = '.5';
+    btn.style.cursor = 'not-allowed';
+    btn.textContent = 'Ключ для цього режиму ще не прописано';
+    return;
+  }
+
+  // Випадковий state — захист від підробленого повернення
+  var state;
+  try {
+    var a = new Uint8Array(16);
+    crypto.getRandomValues(a);
+    state = Array.from(a, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  } catch (e) {
+    state = String(Date.now()) + Math.random().toString(16).slice(2);
+  }
+  try { sessionStorage.setItem('kn_tt_state', state); } catch (e) {}
+
+  btn.href = 'https://www.tiktok.com/v2/auth/authorize/'
+    + '?client_key=' + encodeURIComponent(key)
+    + '&scope=' + encodeURIComponent(SCOPES)
+    + '&response_type=code'
+    + '&redirect_uri=' + encodeURIComponent(REDIRECT)
+    + '&state=' + encodeURIComponent(state);
+})();
+</script>
+</body>
+</html>
