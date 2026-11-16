@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Вхід через TikTok — KUZUB NEWS</title>
+<meta name="description" content="Сторінка повернення після авторизації застосунку KUZUB NEWS Mirror у TikTok.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .code-box {
+    margin: 14px 0;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, .25);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: 15px/1.5 "Cascadia Mono", Consolas, "Courier New", monospace;
+    word-break: break-all;
+    user-select: all;
+  }
+  .btn {
+    display: inline-block;
+    padding: 11px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .btn:hover { background: rgba(255, 255, 255, .12); }
+  .ok { color: var(--yellow); }
+  .err { color: #ff8e8e; }
+  .hint { color: var(--dim); font-size: 15px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">KN</div>
+  <h1>Вхід через TikTok</h1>
+  <p class="tagline">TikTok authorization callback</p>
+  <div class="stripe"><span></span><span></span></div>
+</header>
+
+<main>
+  <section id="result">
+    <p class="hint">Зачекай секунду…</p>
+  </section>
+
+  <section>
+    <h2>Що це за сторінка</h2>
+    <p>Сюди TikTok повертає тебе після того, як ти дозволив застосунку
+      <strong>Kuzub News Mirror</strong> працювати з твоїм акаунтом. Код із цієї сторінки
+      потрібен боту один раз — щоб отримати ключ доступу.</p>
+    <p class="hint">Сторінка нічого нікуди не надсилає й нічого не зберігає: код показується
+      лише в твоєму браузері. Він діє кілька хвилин, тому передай його боту одразу.</p>
+    <p><a href="index.html">← На головну</a></p>
+  </section>
+</main>
+
+<footer>
+  KUZUB NEWS · <a href="https://t.me/kuzubnews">t.me/kuzubnews</a>
+</footer>
+
+<script>
+(function () {
+  var box = document.getElementById('result');
+  var p = new URLSearchParams(window.location.search);
+  var code = p.get('code');
+  var state = p.get('state');
+  var err = p.get('error') || p.get('errCode');
+  var errDesc = p.get('error_description') || p.get('errMsg');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  if (err) {
+    box.innerHTML =
+      '<h2 class="err">Вхід не завершено</h2>' +
+      '<p>TikTok повернув помилку:</p>' +
+      '<div class="code-box">' + esc(err) + (errDesc ? '<br>' + esc(errDesc) : '') + '</div>' +
+      '<p class="hint">Спробуй ще раз із посилання, яке дав бот. Якщо повторюється — надішли цей текст у чат.</p>';
+    return;
+  }
+
+  if (!code) {
+    box.innerHTML =
+      '<h2>Код не передано</h2>' +
+      '<p>Ти відкрив цю сторінку напряму. Почни вхід із посилання, яке дає бот командою ' +
+      '<strong>/tiktok</strong>.</p>';
+    return;
+  }
+
+  box.innerHTML =
+    '<h2 class="ok">Готово — ось код</h2>' +
+    '<p>Скопіюй його і надішли боту:</p>' +
+    '<div class="code-box" id="code">' + esc(code) + '</div>' +
+    '<p><button class="btn" id="copy" type="button">Копіювати код</button> ' +
+    '<span class="hint" id="copied"></span></p>' +
+    (state ? '<p class="hint">state: ' + esc(state) + '</p>' : '');
+
+  document.getElementById('copy').addEventListener('click', function () {
+    var note = document.getElementById('copied');
+    var text = document.getElementById('code').textContent;
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); note.textContent = 'скопійовано'; }
+      catch (e) { note.textContent = 'не вийшло — виділи та скопіюй вручну'; }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { note.textContent = 'скопійовано'; },
+        fallback
+      );
+    } else {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>
