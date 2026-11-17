@@ -144,7 +144,10 @@
     + '&scope=' + encodeURIComponent(SCOPES)
     + '&response_type=code'
     + '&redirect_uri=' + encodeURIComponent(REDIRECT)
-    + '&state=' + encodeURIComponent(state);
+    + '&state=' + encodeURIComponent(state)
+    // Без цього TikTok мовчки пускає тих, хто вже давав дозвіл, і екран згоди не показується.
+    // Для демо-відео заявки він обов'язковий — там мають бути видні обидва дозволи.
+    + '&disable_auto_auth=1';
 })();
 </script>
 </body>
